@@ -14,7 +14,7 @@ export interface Category {
     name: string
     slug: string
     image_url?: string | null
-    parent_id?: number | null
+    parent_id: number | null
     children?: Category[]
 }
 
