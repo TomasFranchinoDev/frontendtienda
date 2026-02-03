@@ -46,8 +46,8 @@ export function ProductCard({ product }: { product: ProductListItem }) {
 
                     {/* Price */}
                     <div className="mt-3 flex items-baseline justify-between flex-shrink-0">
-                        <span className="text-lg font-bold text-primary">{formattedPrice}</span>
-                        {product.price_start && <span className="text-xs text-muted-foreground">3 cuotas sin interés de {parseFloat(product.price_start) / 3}</span>}
+                        <span className="text-lg font-bold text-primary">{formattedPrice}</span><br />
+                        {product.price_start && <span className="text-xs text-muted-foreground">3 cuotas sin interés de {Number(parseFloat(product.price_start) / 3).toFixed(2)}</span>}
                     </div>
                 </div>
             </div>
