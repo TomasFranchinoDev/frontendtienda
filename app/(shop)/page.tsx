@@ -136,7 +136,7 @@ export default async function HomePage() {
                             <div className="flex min-w-0 flex-col justify-center">
                                 <h3 className="text-sm sm:text-base font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">Envío Rápido</h3>
                                 <p className="text-xs sm:text-sm text-muted-foreground transition-colors duration-300 group-hover:text-muted-foreground/80 line-clamp-2">
-                                    Entrega en 5-10 días
+                                    Envios a todo el pais
                                 </p>
                             </div>
                         </div>
@@ -184,7 +184,7 @@ export default async function HomePage() {
                             <div className="flex min-w-0 flex-col justify-center">
                                 <h3 className="text-sm sm:text-base font-semibold text-foreground transition-colors duration-300 group-hover:text-primary">Devoluciones Fáciles</h3>
                                 <p className="text-xs sm:text-sm text-muted-foreground transition-colors duration-300 group-hover:text-muted-foreground/80 line-clamp-2">
-                                    30 días sin preguntas
+                                    30 días habiles para devoluciones
                                 </p>
                             </div>
                         </div>
