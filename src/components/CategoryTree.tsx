@@ -1,21 +1,70 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
-interface Category {
+interface CategoryInput {
     id: number;
     name: string;
     slug: string;
     parent_id: number | null;
-    children?: Category[];
+    children?: CategoryInput[];
 }
 
 interface CategoryTreeProps {
     onSelectCategory: (slug: string) => void;
     selectedCategory: string | null;
-    categories: Category[];
+    categories: CategoryInput[];
 }
+
+type CategoryNode = {
+    id: number;
+    name: string;
+    slug: string;
+    parent_id: number | null;
+    children: CategoryNode[];
+};
+
+const buildCategoryTree = (items: CategoryInput[]): CategoryNode[] => {
+    const byId = new Map<number, CategoryNode>();
+    const stack = [...items];
+
+    while (stack.length) {
+        const current = stack.pop();
+        if (!current) continue;
+
+        if (!byId.has(current.id)) {
+            byId.set(current.id, {
+                id: current.id,
+                name: current.name,
+                slug: current.slug,
+                parent_id: current.parent_id,
+                children: [],
+            });
+        }
+
+        if (current.children && current.children.length) {
+            stack.push(...current.children);
+        }
+    }
+
+    const roots: CategoryNode[] = [];
+
+    for (const cat of byId.values()) {
+        if (cat.parent_id === null || cat.parent_id === undefined) {
+            roots.push(cat);
+            continue;
+        }
+        const parent = byId.get(cat.parent_id);
+        if (parent) {
+            parent.children.push(cat);
+        } else {
+            roots.push(cat);
+        }
+    }
+
+    return roots;
+};
 
 export function CategoryTree({ onSelectCategory, selectedCategory, categories }: CategoryTreeProps) {
     const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
@@ -40,7 +89,7 @@ export function CategoryTree({ onSelectCategory, selectedCategory, categories }:
         onSelectCategory('');
     };
 
-    const CategoryItem = ({ category, level = 0 }: { category: Category; level?: number }) => {
+    const CategoryItem = ({ category, level = 0 }: { category: CategoryNode; level?: number }) => {
         const isExpanded = expandedIds.has(category.id);
         const hasChildren = category.children && category.children.length > 0;
         const isSelected = selectedCategory === category.slug;
@@ -67,8 +116,8 @@ export function CategoryTree({ onSelectCategory, selectedCategory, categories }:
                     <button
                         onClick={() => handleSelectCategory(category.slug)}
                         className={`flex-1 text-left px-2 py-2 rounded text-sm transition-colors ${isSelected
-                                ? 'bg-gray-700 dark:bg-gray-600 text-white font-medium'
-                                : 'hover:bg-muted text-foreground'
+                            ? 'bg-gray-700 dark:bg-gray-600 text-white font-medium'
+                            : 'hover:bg-muted text-foreground'
                             }`}
                     >
                         {category.name}
@@ -89,8 +138,7 @@ export function CategoryTree({ onSelectCategory, selectedCategory, categories }:
         );
     };
 
-    // Filtrar solo las categorías raíz
-    const rootCategories = categories.filter(cat => cat.parent_id === null || cat.parent_id === undefined);
+    const rootCategories = useMemo(() => buildCategoryTree(categories), [categories]);
 
     return (
         <div className="rounded-lg border border-border bg-card p-4 space-y-2">
