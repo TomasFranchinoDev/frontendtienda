@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
                         href="/auth/login"
                         className="w-full block text-center rounded-lg bg-background px-4 py-3 text-foreground shadow-md transition-all hover:bg-grey-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-grey-500 focus:ring-offset-2 dark:bg-grey-600 dark:hover:bg-grey-700"
                     >
-                        Volver al login
+                        Volver al inicio de sesión
                     </Link>
                 </div>
             </div>
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
                             href="/auth/login"
                             className="text-sm font-medium text-primary hover:underline"
                         >
-                            Volver al login
+                            Volver al inicio de sesión
                         </Link>
                     </div>
                 </form>

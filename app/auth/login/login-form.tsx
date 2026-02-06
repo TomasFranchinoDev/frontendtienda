@@ -27,7 +27,7 @@ export function LoginForm() {
         clearError();
 
         if (!email || !password) {
-            setLocalError('Email and password are required');
+            setLocalError('Email y contraseña son obligatorios');
             return;
         }
 
@@ -36,7 +36,7 @@ export function LoginForm() {
             router.push('/');
         } catch (err) {
             // Error is handled in the store, just ensure UI updates
-            const message = err instanceof Error ? err.message : 'Login failed';
+            const message = err instanceof Error ? err.message : 'Error al iniciar sesión';
             setLocalError(message);
         }
     };
@@ -46,7 +46,7 @@ export function LoginForm() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4">
             <div className="w-full max-w-md rounded-lg border border-border bg-card p-8 shadow-lg">
-                <h1 className="mb-6 text-center text-2xl font-bold text-card-foreground">Login</h1>
+                <h1 className="mb-6 text-center text-2xl font-bold text-card-foreground">Inicio de Sesión</h1>
 
                 {successMessage && (
                     <div className="mb-4 rounded-md bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400">
@@ -78,7 +78,7 @@ export function LoginForm() {
 
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-card-foreground mb-2">
-                            Password
+                            Contraseña
                         </label>
                         <input
                             id="password"
