@@ -1,11 +1,10 @@
 import { Suspense } from 'react';
-import Link from 'next/link';
 import { getProducts, getCategories } from '@/lib/api';
-import { ProductCard } from '@/components/ProductCard';
 import FiltersContainer from '@/components/products/filters-container';
 import SearchInput from '@/components/products/search-input';
 import ProductSorter from '@/components/products/product-sorter';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import ProductInfiniteGrid from '@/components/products/product-infinite-grid';
+import type { ProductFilters } from '@/actions/product-actions';
 
 interface PageProps {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -16,38 +15,19 @@ export const metadata = {
     description: 'Explora nuestro catálogo completo de productos',
 };
 
-async function ProductsGrid({
-    page,
-    search,
-    category,
-    minPrice,
-    maxPrice,
-    ordering
+async function ProductsGridLoader({
+    filters,
 }: {
-    page: number;
-    search?: string;
-    category?: string;
-    minPrice?: string;
-    maxPrice?: string;
-    ordering?: string;
+    filters: ProductFilters;
 }) {
     try {
-        const data = await getProducts(page, 20, {
-            search,
-            category,
-            min_price: minPrice,
-            max_price: maxPrice,
-            ordering,
+        const data = await getProducts(1, 20, {
+            search: filters.search,
+            category: filters.category,
+            min_price: filters.min_price,
+            max_price: filters.max_price,
+            ordering: filters.ordering,
         });
-
-        if (!data.results || data.results.length === 0) {
-            return (
-                <div className="flex min-h-96 flex-col items-center justify-center rounded-lg border border-border bg-card/50 p-8 text-center">
-                    <p className="text-lg font-medium text-foreground">No se encontraron productos</p>
-                    <p className="mt-2 text-muted-foreground">Prueba ajustando tus filtros de búsqueda</p>
-                </div>
-            );
-        }
 
         return (
             <>
@@ -58,74 +38,16 @@ async function ProductsGrid({
                     <ProductSorter />
                 </div>
 
-                <div className="grid auto-rows-max grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {data.results.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
-                </div>
-
-                {/* Pagination Controls */}
-                <div className="mt-12 flex items-center justify-center gap-4">
-                    <Link
-                        href={{
-                            query: {
-                                page: page > 1 ? page - 1 : 1,
-                                search,
-                                category,
-                                min_price: minPrice,
-                                max_price: maxPrice,
-                                ordering
-                            }
-                        }}
-                        passHref
-                        legacyBehavior={false}
-                    >
-                        <button
-                            disabled={page === 1}
-                            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 font-semibold transition-all ${page === 1
-                                ? 'cursor-not-allowed bg-muted text-muted-foreground opacity-50'
-                                : 'border border-gray-700 dark:border-gray-600 bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-700 dark:hover:bg-gray-600 hover:text-white'
-                                }`}
-                        >
-                            <ChevronLeft className="h-5 w-5" />
-                            Anterior
-                        </button>
-                    </Link>
-
-                    <span className="text-sm text-muted-foreground">
-                        Página <span className="font-semibold text-foreground">{page}</span>
-                    </span>
-
-                    <Link
-                        href={{
-                            query: {
-                                page: data.next ? page + 1 : page,
-                                search,
-                                category,
-                                min_price: minPrice,
-                                max_price: maxPrice,
-                                ordering
-                            }
-                        }}
-                        passHref
-                        legacyBehavior={false}
-                    >
-                        <button
-                            disabled={!data.next}
-                            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 font-semibold transition-all ${!data.next
-                                ? 'cursor-not-allowed bg-muted text-muted-foreground opacity-50'
-                                : 'border border-gray-700 dark:border-gray-600 bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-700 dark:hover:bg-gray-600 hover:text-white'
-                                }`}
-                        >
-                            Siguiente
-                            <ChevronRight className="h-5 w-5" />
-                        </button>
-                    </Link>
-                </div>
+                <ProductInfiniteGrid
+                    initialProducts={data.results ?? []}
+                    initialHasMore={data.next !== null}
+                    totalCount={data.count}
+                    filters={filters}
+                />
             </>
         );
     } catch (error) {
-        console.error('Error fetching products:');
+        console.error('Error fetching products:', error);
         return (
             <div className="flex min-h-96 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/5">
                 <p className="text-lg text-destructive">Error al cargar los productos</p>
@@ -150,15 +72,15 @@ function ProductsGridSkeleton() {
 
 export default async function ProductsPage({ searchParams }: PageProps) {
     const params = await searchParams;
-    const page = typeof params.page === 'string' ? parseInt(params.page, 10) : 1;
-    const validPage = Math.max(1, isNaN(page) ? 1 : page);
 
-    // Extract filters
-    const search = typeof params.search === 'string' ? params.search : undefined;
-    const category = typeof params.category === 'string' ? params.category : undefined;
-    const minPrice = typeof params.min_price === 'string' ? params.min_price : undefined;
-    const maxPrice = typeof params.max_price === 'string' ? params.max_price : undefined;
-    const ordering = typeof params.ordering === 'string' ? params.ordering : undefined;
+    // Extract filters (page param is no longer needed)
+    const filters: ProductFilters = {
+        search: typeof params.search === 'string' ? params.search : undefined,
+        category: typeof params.category === 'string' ? params.category : undefined,
+        min_price: typeof params.min_price === 'string' ? params.min_price : undefined,
+        max_price: typeof params.max_price === 'string' ? params.max_price : undefined,
+        ordering: typeof params.ordering === 'string' ? params.ordering : undefined,
+    };
 
     // Fetch categories for sidebar
     const categories = await getCategories();
@@ -186,14 +108,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                     {/* Main Content */}
                     <main className="flex-1">
                         <Suspense fallback={<ProductsGridSkeleton />}>
-                            <ProductsGrid
-                                page={validPage}
-                                search={search}
-                                category={category}
-                                minPrice={minPrice}
-                                maxPrice={maxPrice}
-                                ordering={ordering}
-                            />
+                            <ProductsGridLoader filters={filters} />
                         </Suspense>
                     </main>
                 </div>
